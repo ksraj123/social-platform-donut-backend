@@ -29,6 +29,8 @@
     "http-status-codes": "^1.4.0",
     "ioredis": "^4.17.3",
     "jsonwebtoken": "^8.5.1",
+    "kafka-node": "^5.0.0",
+    "kafka-proxy": "^1.0.0",
     "moment": "^2.27.0",
     "mongo-sanitize": "^1.1.0",
     "mongoose": "^5.7.7",

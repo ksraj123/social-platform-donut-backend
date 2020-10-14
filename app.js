@@ -14,6 +14,8 @@ var winston = require('./config/winston')
 const rateLimiter = require('./app/middleware/rateLimiter')
 const sanitizer = require('./app/middleware/sanitise')
 const fileConstants = require('./config/fileHandlingConstants')
+const kafka = require("kafka-node")
+const KafkaProxy = require('kafka-proxy')
 
 const indexRouter = require('./app/routes/index')
 const authRouter = require('./app/routes/auth')
@@ -137,5 +139,12 @@ app.use(function (err, req, res, next) {
   })
   next()
 })
+
+const kafkaProxy = new KafkaProxy({
+  wsPort: 9999,
+  kafka: process.env.KAFKA_HOST
+})
+
+kafkaProxy.listen()
 
 module.exports = { app, io }

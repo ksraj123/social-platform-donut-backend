@@ -4,6 +4,7 @@ const TicketModel = require('../models/Ticket')
 const TAGS = require('../utils/notificationTags')
 const HANDLER = require('../utils/response-helper')
 const ticketNotificationHelper = require('../utils/ticket-notif-helper')
+const kafka = require('kafka-node')
 
 const notification = {
   heading: '',
@@ -248,6 +249,25 @@ module.exports = {
       notification.content = `${req.user.name.firstName} ${req.user.name.lastName} commented on your Ticket!`
       notification.tag = TAGS.NEW
       notification.createdAt = Date.now()
+
+      const Producer = kafka.Producer;
+      const client = new kafka.KafkaClient({ kafkaHost: process.env.KAFKA_HOST })
+      const producer = new Producer(client)
+      console.log(String(ticket.createdBy.id))
+      const payloads = [
+        {
+          topic: String(ticket.createdBy.id),
+          messages: `${req.user.name.firstName} ${req.user.name.lastName} commented on your Ticket!`
+        }
+      ]
+      producer.send(payloads, (err, data) => {
+        if (err) {
+          console.log('[kafka-producer -> ' + ticket.createdBy.id + ']: broker update failed')
+        } else {
+          console.log('[kafka-producer -> ' + ticket.createdBy.id + ']: broker update success')
+        }
+      })
+
       await ticketNotificationHelper.addToNotificationForUser(ticket.createdBy.id, res, notification, next)
       await ticket.save()
       req.io.emit('New Ticket Notification', { ...notification, for: ticket.createdBy.id })

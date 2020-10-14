@@ -12,6 +12,7 @@ const TAGS = require('../utils/notificationTags')
 const settingHelper = require('../utils/settingHelpers')
 const Activity = require('../models/Activity')
 const activityHelper = require('../utils/activity-helper')
+const kafka = require('kafka-node')
 
 const notification = {
   heading: '',
@@ -41,6 +42,23 @@ module.exports = {
       const token = await user.generateAuthToken()
       // Added fn to send email to activate account with warm message
       await emailController.sendEmail(req, res, next, token)
+
+      // console.log(process.env.KAFKA_HOST)
+      const client = new kafka.KafkaClient({ kafkaHost: process.env.KAFKA_HOST })
+      const topicToCreate = [
+        {
+          topic: String(data._id),
+          partitions: 1,
+          replicationFactor: 1
+        }
+      ]
+
+      client.createTopics(topicToCreate, (error, result) => {
+        if (error) {
+          console.log(error)
+        }
+        console.log(result, 'topic created successfully')
+      })
 
       // create redis db for activity for the user
       const activity = new Activity({ userId: data._id })
